@@ -8,6 +8,7 @@ import (
 	"oss/api-server/handler"
 	"oss/api-server/heartbeat"
 	"oss/api-server/locate"
+	"oss/api-server/version"
 )
 
 func main() {
@@ -23,5 +24,6 @@ func main() {
 
 	http.HandleFunc("/objects/", handler.Handler)
 	http.HandleFunc("/locate/", locate.Handler)
+	http.HandleFunc("/version/", version.Handler)
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }

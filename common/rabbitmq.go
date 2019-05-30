@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 	"github.com/streadway/amqp"
 )
 
