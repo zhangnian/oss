@@ -6,10 +6,9 @@ import (
 	"strings"
 )
 
-
-func Handler(w http.ResponseWriter, r *http.Request){
+func Handler(w http.ResponseWriter, r *http.Request) {
 	method := r.Method
-	if method != http.MethodGet{
+	if method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
