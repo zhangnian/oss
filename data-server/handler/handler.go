@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"oss/data-server/g"
+	"oss/data-server/locate"
 	"strings"
 )
 
@@ -24,10 +26,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func put(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.EscapedPath() // /objects/xxxx
-	key := strings.Split(path, "/")[2]
+	key := strings.Split(r.URL.EscapedPath(), "/")[2]
 
-	filepath := os.Getenv("DS_PATH") + "/objects/" + key
+	filepath := g.GetFilePath(key)
 	f, err := os.Create(filepath)
 	if err != nil {
 		log.Printf("create file failed, error: %s\n", err.Error())
@@ -37,13 +38,14 @@ func put(w http.ResponseWriter, r *http.Request) {
 	defer f.Close()
 
 	io.Copy(f, r.Body)
+	locate.AddObject(key)
 }
 
 func get(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.EscapedPath() // /objects/xxxx
 	key := strings.Split(path, "/")[2]
 
-	filepath := os.Getenv("DS_PATH") + "/objects/" + key
+	filepath := g.GetFilePath(key)
 	f, err := os.Open(filepath)
 	if err != nil {
 		if os.IsNotExist(err) {

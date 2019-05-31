@@ -13,7 +13,7 @@ import (
 
 func main() {
 	host := flag.String("h", "0.0.0.0", "listen host")
-	port := flag.Int("p", 12345, "listen port")
+	port := flag.Int("p", 8001, "listen port")
 
 	flag.Parse()
 

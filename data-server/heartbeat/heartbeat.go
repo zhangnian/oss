@@ -2,11 +2,12 @@ package heartbeat
 
 import (
 	"oss/common"
+	"oss/data-server/g"
 	"time"
 )
 
 func StartHeartbeat(listenAddr string) {
-	mq := common.NewRabbitMQ("amqp://182.61.19.174:5672")
+	mq := common.NewRabbitMQ(g.MQ_ADDR)
 	defer mq.Close()
 
 	for {

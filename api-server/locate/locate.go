@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"oss/api-server/g"
+	"oss/api-server/utils"
 	"oss/common"
-	"strings"
 	"time"
 )
 
@@ -15,8 +16,22 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := strings.Split(r.URL.EscapedPath(), "/")[2]
-	addr := Locate(key)
+	name := utils.GetObjectName(r)
+
+	meta, err := common.SearchLastVersion(name)
+	if err != nil{
+		log.Printf("查找对象：%s元数据失败\n", name)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	log.Println(meta)
+	if meta.Hash == ""{
+		log.Printf("对象：%s已被删除\n", name)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	addr := Locate(meta.Hash)
 	if addr == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -26,7 +41,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Locate(key string) string {
-	mq := common.NewRabbitMQ("amqp://182.61.19.174:5672")
+	mq := common.NewRabbitMQ(g.MQ_ADDR)
 	defer mq.Close()
 
 	msg := map[string]string{

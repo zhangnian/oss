@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
+	"oss/api-server/g"
 	"oss/common"
 	"sync"
 	"time"
@@ -13,7 +14,7 @@ var m_dataservers = make(map[string]time.Time)
 var m_dataservers_mutex sync.Mutex
 
 func StartHeartbeat() {
-	mq := common.NewRabbitMQ("amqp://182.61.19.174:5672")
+	mq := common.NewRabbitMQ(g.MQ_ADDR)
 	defer mq.Close()
 
 	mq.Bind("apiserver")

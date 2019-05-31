@@ -3,20 +3,57 @@ package locate
 import (
 	"encoding/json"
 	"log"
-	"os"
 	"oss/common"
+	"oss/data-server/g"
+	"path/filepath"
+	"sync"
 )
 
-func locate(key string) bool {
-	log.Printf("开始定位对象：%s\n", key)
+var objectMap = make(map[string]int)
+var objectMapLocker sync.RWMutex
 
-	filepath := os.Getenv("DS_PATH") + "/objects/" + key
-	_, err := os.Stat(filepath)
-	return !os.IsNotExist(err)
+func locate(key string) bool {
+	objectMapLocker.RLock()
+	defer objectMapLocker.RUnlock()
+
+	log.Println("locate key: " + key)
+	_, ok := objectMap[key]
+	return ok
+}
+
+func AddObject(key string) {
+	objectMapLocker.Lock()
+	defer objectMapLocker.Unlock()
+
+	objectMap[key] = 1
+}
+
+func RemoveObject(key string) {
+	objectMapLocker.Lock()
+	defer objectMapLocker.Unlock()
+
+	delete(objectMap, key)
+}
+
+func ScanObjects() {
+	objectMapLocker.Lock()
+	defer objectMapLocker.Unlock()
+
+	files, err := filepath.Glob(g.DataDir + "/objects/*")
+	if err != nil {
+		return
+	}
+
+	for i := range files {
+		key := filepath.Base(files[i])
+		objectMap[key] = 1
+	}
+
+	log.Printf("扫描结束，共：%d个对象\n", len(objectMap))
 }
 
 func StartLocate(addr string) {
-	mq := common.NewRabbitMQ("amqp://182.61.19.174:5672")
+	mq := common.NewRabbitMQ(g.MQ_ADDR)
 	defer mq.Close()
 
 	mq.Bind("dataserver")
