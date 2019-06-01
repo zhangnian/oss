@@ -19,13 +19,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	name := utils.GetObjectName(r)
 
 	meta, err := common.SearchLastVersion(name)
-	if err != nil{
+	if err != nil {
 		log.Printf("查找对象：%s元数据失败\n", name)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	log.Println(meta)
-	if meta.Hash == ""{
+	if meta.Hash == "" {
 		log.Printf("对象：%s已被删除\n", name)
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -50,7 +50,6 @@ func SearchLastVersion(name string) (m Metadata, err error) {
 	url := fmt.Sprintf("http://182.61.19.174:9200/metadata/_search?q=name:%s&size=1&sort=version:desc",
 		url2.PathEscape(name))
 
-	log.Println(url)
 	r, err := http.Get(url)
 	if err != nil {
 		log.Printf("http get error: %s\n", err.Error())
