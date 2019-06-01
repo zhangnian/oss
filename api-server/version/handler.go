@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 	"net/http"
 	"oss/api-server/utils"
 	"oss/common"
