@@ -1,9 +1,10 @@
 package version
 
 import (
-	"log"
+	"github.com/gin-gonic/gin/json"
 	"net/http"
-	"strings"
+	"oss/api-server/utils"
+	"oss/common"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -14,8 +15,28 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	from := 0
-	size := 1000
-	name := strings.Split(r.URL.EscapedPath(), "/")[2]
+	size := 4
+	name := utils.GetObjectName(r)
+	for {
+		metas, err := common.SearchAllVersion(name, from, size)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	log.Println(name, from, size)
+		for i := range metas {
+			if metas[i].Hash == "" {
+				continue
+			}
+			b, _ := json.Marshal(metas[i])
+			w.Write(b)
+			w.Write([]byte("\n"))
+		}
+
+		if len(metas) < size {
+			return
+		}
+
+		from += size
+	}
 }
