@@ -47,6 +47,7 @@ func storeObject(r io.Reader, name string) (int, error) {
 	return http.StatusOK, nil
 }
 
+
 func putStream(name string) (*objectstream.PutStream, error) {
 	dsAddr := heartbeat.ChooseRandomDataServer()
 	if dsAddr == "" {
