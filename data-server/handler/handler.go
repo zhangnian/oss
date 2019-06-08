@@ -23,12 +23,12 @@ func get(w http.ResponseWriter, r *http.Request) {
 	key := common.GetObjectName(r)
 	filepath := g.GetFilePath(key)
 	f, err := os.Open(filepath)
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	hash := common.CalculateHash(f)
-	if hash != key{
+	if hash != key {
 		os.Remove(filepath)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -38,7 +38,7 @@ func get(w http.ResponseWriter, r *http.Request) {
 	sendFile(w, filepath)
 }
 
-func sendFile(w io.Writer, filePath string){
+func sendFile(w io.Writer, filePath string) {
 	f, _ := os.Open(filePath)
 	defer f.Close()
 

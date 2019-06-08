@@ -11,6 +11,7 @@ import (
 	"oss/common"
 	"oss/data-server/g"
 	"oss/data-server/locate"
+	"strconv"
 	"strings"
 )
 
@@ -62,8 +63,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func post(w http.ResponseWriter, r *http.Request) {
 	output, _ := exec.Command("uuidgen").Output()
 	uuid := strings.Trim(string(output), "\n")
+	log.Printf("generated uuid: %s\n", uuid)
+
 	name := common.GetObjectName(r)
-	size := common.GetSizeFromHeader(r)
+	size, _ := strconv.ParseInt(r.Header.Get("size"), 10, 64)
 
 	t := tempInfo{
 		UUID: uuid,
@@ -71,14 +74,18 @@ func post(w http.ResponseWriter, r *http.Request) {
 		Size: size,
 	}
 
+	log.Printf("file meta info: %v\n", t)
+
 	err := t.writeToFile()
 	if err != nil {
+		log.Printf("write to file error: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	_, err = os.Create(g.GetTempDataFilePath(t.UUID))
 	if err != nil {
+		log.Printf("create temp date file error: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -129,7 +136,6 @@ func patch(w http.ResponseWriter, r *http.Request) {
 
 	info, _ := f.Stat()
 	actualSize := info.Size()
-
 	if actualSize != tempInfo.Size {
 		os.Remove(metaFilePath)
 		os.Remove(dataFilePath)

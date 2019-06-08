@@ -1,9 +1,10 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
 )
 
@@ -24,12 +25,8 @@ func GetHashFromHeader(r *http.Request) string {
 	return digest[8:]
 }
 
-func GetSizeFromHeader(r *http.Request) int64 {
-	size, _ := strconv.ParseInt(r.Header.Get("Content-length"), 10, 64)
-	return size
-}
-
-
-func CalculateHash(f *os.File) string{
-	return ""
+func CalculateHash(r io.Reader) string {
+	h := sha256.New()
+	io.Copy(h, r)
+	return hex.EncodeToString(h.Sum(nil))
 }

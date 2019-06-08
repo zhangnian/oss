@@ -69,3 +69,9 @@ func Locate(key string) string {
 
 	return retMsg["addr"]
 }
+
+func Exist(key string) bool {
+	addr := Locate(key)
+	log.Printf("定位：%s，结果：%s\n", key, addr)
+	return addr != ""
+}

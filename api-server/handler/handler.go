@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"oss/api-server/heartbeat"
+	"oss/api-server/locate"
 	"oss/api-server/objectstream"
 	"oss/api-server/utils"
 	"oss/common"
@@ -32,28 +33,45 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 
-func storeObject(r io.Reader, name string) (int, error) {
-	stream, err := putStream(name)
+func storeObject(r io.Reader, hash string, size int64) (int, error) {
+	if locate.Exist(hash) {
+		log.Printf("对象：%s已存在", hash)
+		return http.StatusOK, nil
+	}
+
+	stream, err := putStream(hash, size)
 	if err != nil {
 		return http.StatusServiceUnavailable, err
 	}
 
-	io.Copy(stream, r)
-	err = stream.Close()
-	if err != nil {
-		return http.StatusServiceUnavailable, err
+	if stream == nil {
+		log.Println("putSteam failed")
+		return http.StatusInternalServerError, err
 	}
+
+	reader := io.TeeReader(r, stream)
+	computedHash := common.CalculateHash(reader)
+	log.Printf("computedHash: %s, hash: %s\n", computedHash, hash)
+	if computedHash != hash {
+		log.Println("hash不匹配，撤销临时对象")
+		stream.Commit(false)
+		return http.StatusBadRequest, nil
+	}
+
+	stream.Commit(true)
+	log.Println("提交临时对象")
 
 	return http.StatusOK, nil
 }
 
-func putStream(name string) (*objectstream.PutStream, error) {
+func putStream(name string, size int64) (*objectstream.TempPutStream, error) {
 	dsAddr := heartbeat.ChooseRandomDataServer()
 	if dsAddr == "" {
 		return nil, fmt.Errorf("can't find any dataserver")
 	}
 
-	return objectstream.NewPutStream(dsAddr, name), nil
+	log.Printf("随机选取的Data Server为：%s\n", dsAddr)
+	return objectstream.NewTempPutStream(dsAddr, name, size)
 }
 
 func put(w http.ResponseWriter, r *http.Request) {
@@ -64,15 +82,22 @@ func put(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	code, err := storeObject(r.Body, hash)
+	size := utils.GetSizeFromHeader(r)
+
+	log.Printf("api size: %d\n", size)
+
+	code, err := storeObject(r.Body, hash, size)
 	if err != nil {
 		w.WriteHeader(code)
 		return
 	}
 
-	name := utils.GetObjectName(r)
-	size := utils.GetSizeFromHeader(r)
+	if code != http.StatusOK {
+		w.WriteHeader(code)
+		return
+	}
 
+	name := utils.GetObjectName(r)
 	err = common.AddVersion(name, hash, size)
 	if err != nil {
 		log.Printf("更新对象元数据失败, error: %s\n", err.Error())
