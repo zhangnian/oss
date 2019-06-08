@@ -9,6 +9,7 @@ import (
 	"oss/data-server/handler"
 	"oss/data-server/heartbeat"
 	"oss/data-server/locate"
+	"oss/data-server/temp"
 )
 
 func main() {
@@ -28,5 +29,6 @@ func main() {
 	go locate.StartLocate(listenAddr)
 
 	http.HandleFunc("/objects/", handler.Handler)
+	http.HandleFunc("/temp/", temp.Handler)
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }

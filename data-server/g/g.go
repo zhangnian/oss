@@ -8,3 +8,11 @@ var (
 func GetFilePath(key string) string {
 	return DataDir + "/objects/" + key
 }
+
+func GetMetaFilePath(key string) string {
+	return DataDir + "/temp/" + key
+}
+
+func GetTempDataFilePath(key string) string {
+	return DataDir + "/temp/" + key + ".dat"
+}

@@ -47,7 +47,6 @@ func storeObject(r io.Reader, name string) (int, error) {
 	return http.StatusOK, nil
 }
 
-
 func putStream(name string) (*objectstream.PutStream, error) {
 	dsAddr := heartbeat.ChooseRandomDataServer()
 	if dsAddr == "" {
@@ -106,7 +105,7 @@ func get(w http.ResponseWriter, r *http.Request) {
 	log.Printf("开始获取对象：%s\n", meta.Hash)
 
 	stream, err := objectstream.NewGetStream(meta.Hash)
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
