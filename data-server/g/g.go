@@ -2,7 +2,7 @@ package g
 
 var (
 	DataDir string
-	MQ_ADDR = "amqp://182.61.19.174:5672"
+	MQ_ADDR = "amqp://120.132.116.122:5672"
 )
 
 func GetFilePath(key string) string {
